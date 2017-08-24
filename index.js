@@ -11,18 +11,18 @@ const _ = require('underscore');
 const uuidV4 = require('uuid/v4');
 const fs = require('fs');
 const jsonfile = require('jsonfile');
+const morgan = require('morgan');
+
+app.set('json spaces', 3);
 
 // For Content-Type: application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({
     extended: false
 }));
-
 // For Content-Type: application/json
 app.use(bodyParser.json())
-
 app.use(fileUpload());
-
-app.set('json spaces', 3);
+app.use(morgan(':remote-addr | :method :url :status :res[content-length] bytes - :response-time ms'));
 
 app.get('/', function(req, res) {
     res.sendFile('views/index.html', {root: __dirname});
