@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Upload Einstein CSV</title>
+    </head>
+    <body>
+        <h1>Upload Einstein CSV</h1>
+        <form action="/upload-csv" method="post" enctype="multipart/form-data">
+            <fieldset>
+                <legend>Einstein CSV File Upload</legend>
+                <label for="albumId">Album ID</label><br />
+                <input type="text" id="albumId" name="albumId" /><br />
+                <label for="csvFile">CSV File</label><br />
+                <input name="csvFile" id="csvFile" type="file" />
+            </fieldset>
+            <input type="submit" value="Send!" />
+        </form>
+    </body>
+</html>
