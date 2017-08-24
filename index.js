@@ -22,6 +22,8 @@ app.use(bodyParser.json())
 
 app.use(fileUpload());
 
+app.set('json spaces', 3);
+
 app.get('/', function(req, res) {
     res.sendFile('views/index.html', {root: __dirname});
 });
@@ -161,9 +163,9 @@ app.get('/status/:csvJsonId', function(req, res) {
                 webhookCompleted: csvJsonPair[1].webhookCompleted ? true : false
             }
         }
-        res.send(response);
+        res.json(response);
     } else {
-        res.send({
+        res.json({
             success: false,
             message: 'File does not exists'
         });
