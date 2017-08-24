@@ -20,7 +20,7 @@ app.use(bodyParser.urlencoded({
     extended: false
 }));
 // For Content-Type: application/json
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 app.use(fileUpload());
 app.use(morgan(':remote-addr | :method :url :status :res[content-length] bytes - :response-time ms'));
 
@@ -170,6 +170,11 @@ app.get('/status/:csvJsonId', function(req, res) {
             message: 'File does not exists'
         });
     }
+});
+
+app.use(function(req, res) {
+    res.status(404);
+    res.send('404 - Not found');
 });
 
 app.listen(process.env.PORT, function () {
