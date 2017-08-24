@@ -51,7 +51,6 @@ app.post('/webhook', function (req, res) {
         iss: process.env.SHARINPIX_SECRET_ID
     }, process.env.SHARINPIX_SECRET);
     jsonfile.readFile(filepath, function(err, images) {
-        console.log(images);
         let image = images[externalId];
         let imageAttributesPair = _.pairs(image.otherAttributes);
         for (let attribute of imageAttributesPair) {
