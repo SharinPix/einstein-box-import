@@ -10,6 +10,7 @@ const jwt = require('jsonwebtoken');
 const _ = require('underscore');
 const uuidV4 = require('uuid/v4');
 const fs = require('fs');
+const jsonfile = require('jsonfile');
 
 // For Content-Type: application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({
@@ -49,29 +50,44 @@ app.post('/webhook', function (req, res) {
         abilities: abilities,
         iss: process.env.SHARINPIX_SECRET_ID
     }, process.env.SHARINPIX_SECRET);
-    parseCsvImages(filepath, function(images) {
+    jsonfile.readFile(filepath, function(err, images) {
+        console.log(images);
         let image = images[externalId];
         let imageAttributesPair = _.pairs(image.otherAttributes);
         for (let attribute of imageAttributesPair) {
-            if (/^box\d+$/.test(attribute[0]) && typeof attribute[1] === 'object') {
-                let box = attribute[1];
-                let label = box.label;
-                let percentageWidth = (box.width / imageWidth) * 100;
-                let percentageHeight = (box.height / imageHeight) * 100;
-                let percentageX = (box.x / imageWidth) * 100;
-                let percentageY = (box.y / imageHeight) * 100;
-                unirest.post(`https://${process.env.ENDPOINT_DOMAIN}/api/v1/images/${imageId}/einstein_box`).headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': `Token token="${token}"`
-                }).send({
-                    label: label,
-                    width: percentageWidth,
-                    height: percentageHeight,
-                    top: percentageY,
-                    left: percentageX
-                }).end(function(response){
-                    console.log('done');
-                });
+            let enteredOnce = false;
+            (function(attribute){
+                if (/^box\d+$/.test(attribute[0]) && typeof attribute[1] === 'object') {
+                    enteredOnce = true;
+                    let box = attribute[1];
+                    let label = box.label;
+                    let percentageWidth = (box.width / imageWidth) * 100;
+                    let percentageHeight = (box.height / imageHeight) * 100;
+                    let percentageX = (box.x / imageWidth) * 100;
+                    let percentageY = (box.y / imageHeight) * 100;
+                    unirest.post(`https://${process.env.ENDPOINT_DOMAIN}/api/v1/images/${imageId}/einstein_box`).headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token token="${token}"`
+                    }).send({
+                        label: label,
+                        width: percentageWidth,
+                        height: percentageHeight,
+                        top: percentageY,
+                        left: percentageX
+                    }).end(function(response){
+                        if (imageAttributesPair[imageAttributesPair.length - 1] === attribute) {
+                            let csvJson = jsonfile.readFileSync(filepath);
+                            csvJson[externalId].webhookCompleted = true;
+                            jsonfile.writeFileSync(filepath, csvJson);
+                        }
+                        console.log('done');
+                    });
+                }
+            })(attribute)
+            if (!enteredOnce && imageAttributesPair[imageAttributesPair.length - 1] === attribute) {
+                let csvJson = jsonfile.readFileSync(filepath);
+                csvJson[externalId].webhookCompleted = true;
+                jsonfile.writeFileSync(filepath, csvJson);
             }
         }
     });
@@ -88,10 +104,10 @@ app.post('/upload-csv', function(req, res) {
     
     let bufferStream = new Stream.PassThrough();
     bufferStream.end(csvFile.data);
-    
-    let outputFilePath = __dirname + '/csv-files/' + uuidV4() + '.csv';
-    if (!fs.existsSync(__dirname + '/csv-files')) {
-        fs.mkdirSync(__dirname + '/csv-files');
+    let csvJsonId = uuidV4();
+    let outputFilePath = `${__dirname}/csv-jsons/${csvJsonId}.csv`;
+    if (!fs.existsSync(`${__dirname}/csv-jsons`)) {
+        fs.mkdirSync(`${__dirname}/csv-jsons`);
     }
     parseCsvImages(bufferStream, outputFilePath, function(imagesHash) {
         let images = _.map(imagesHash, function(image, externalId) {
@@ -124,15 +140,28 @@ app.post('/upload-csv', function(req, res) {
                     filepath: outputFilePath
                 }
             }).end(function (response) {
+                let csvJson = jsonfile.readFileSync(outputFilePath);
+                csvJson[image.externalId].sentForUpload = true;
+                jsonfile.writeFileSync(outputFilePath, csvJson);
                 console.log('Image `' + image.name + '` sent for import.');
             });
         })
-        res.redirect('/image-being-processed');
     })
+    res.redirect(`/status/${csvJsonId}`);
 });
 
-app.get('/image-being-processed', function(req, res) {
-    res.send('Image being processed.');
+app.get('/status/:csvJsonId', function(req, res) {
+    let csvJsonId = req.params.csvJsonId;
+    let csvJson = jsonfile.readFileSync(`${__dirname}/csv-jsons/${csvJsonId}.csv`);
+    let csvJsonPairs = _.pairs(csvJson);
+    let response = {};
+    for (let csvJsonPair of csvJsonPairs) {
+        response[csvJsonPair[1].name] = {
+            sentForUpload: csvJsonPair[1].sentForUpload ? true : false,
+            webhookCompleted: csvJsonPair[1].webhookCompleted ? true : false
+        }
+    }
+    res.send(response);
 });
 
 app.listen(process.env.PORT, function () {
