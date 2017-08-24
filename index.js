@@ -151,16 +151,23 @@ app.post('/upload-csv', function(req, res) {
 
 app.get('/status/:csvJsonId', function(req, res) {
     let csvJsonId = req.params.csvJsonId;
-    let csvJson = jsonfile.readFileSync(`${__dirname}/csv-jsons/${csvJsonId}.csv`);
-    let csvJsonPairs = _.pairs(csvJson);
-    let response = {};
-    for (let csvJsonPair of csvJsonPairs) {
-        response[csvJsonPair[1].name] = {
-            sentForUpload: csvJsonPair[1].sentForUpload ? true : false,
-            webhookCompleted: csvJsonPair[1].webhookCompleted ? true : false
+    if (fs.existsSync(`${__dirname}/csv-jsons/${csvJsonId}.csv`)) {
+        let csvJson = jsonfile.readFileSync(`${__dirname}/csv-jsons/${csvJsonId}.csv`);
+        let csvJsonPairs = _.pairs(csvJson);
+        let response = {};
+        for (let csvJsonPair of csvJsonPairs) {
+            response[csvJsonPair[1].name] = {
+                sentForUpload: csvJsonPair[1].sentForUpload ? true : false,
+                webhookCompleted: csvJsonPair[1].webhookCompleted ? true : false
+            }
         }
+        res.send(response);
+    } else {
+        res.send({
+            success: false,
+            message: 'File does not exists'
+        });
     }
-    res.send(response);
 });
 
 app.listen(process.env.PORT, function () {
