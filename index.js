@@ -127,8 +127,12 @@ app.post('/upload-csv', function(req, res) {
                 console.log('Image `' + image.name + '` sent for import.');
             });
         })
-        res.send('Images being processed.');
+        res.redirect('/image-being-processed');
     })
+});
+
+app.get('/image-being-processed', function(req, res) {
+    res.send('Image being processed.');
 });
 
 app.listen(process.env.PORT, function () {
