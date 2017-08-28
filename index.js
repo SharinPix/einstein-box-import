@@ -1,6 +1,8 @@
-require('dotenv').config();
 const express = require('express');
 const app = express();
+if (app.settings.env === 'development') {
+    require('dotenv').config();
+}
 const bodyParser = require('body-parser');
 const parseCsvImages = require('./lib/parse-csv-images');
 const fileUpload = require('express-fileupload');
