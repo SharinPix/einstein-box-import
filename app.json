@@ -1,0 +1,7 @@
+{
+  "name": "Einstein-Box CSV upload",
+  "description": "Upload Einstein Box from CSV file. ~ By SharinPix",
+  "repository": "https://github.com/SharinPix/einstein-box-import",
+  "logo": "https://einstein.ai/static/images/icons/einstein-glyph-blue.png",
+  "keywords": ["node", "express"]
+}
