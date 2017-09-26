@@ -114,29 +114,29 @@ app.post('/upload-csv', function(req, res) {
         fs.mkdirSync(`${__dirname}/csv-jsons`);
     }
     parseCsv(albumId, bufferStream, outputFilePath, sharinpixInstance);
-    res.redirect(`/status/${csvJsonId}`);
+    res.redirect(`/`);
 });
 
-app.get('/status/:csvJsonId', function(req, res) {
-    let csvJsonId = req.params.csvJsonId;
-    if (fs.existsSync(`${__dirname}/csv-jsons/${csvJsonId}.json`)) {
-        let csvJson = jsonfile.readFileSync(`${__dirname}/csv-jsons/${csvJsonId}.json`);
-        let csvJsonPairs = _.pairs(csvJson);
-        let response = {};
-        for (let csvJsonPair of csvJsonPairs) {
-            response[csvJsonPair[1].name] = {
-                sentForUpload: csvJsonPair[1].sentForUpload ? true : false,
-                webhookCompleted: csvJsonPair[1].webhookCompleted ? true : false
-            }
-        }
-        res.json(response);
-    } else {
-        res.json({
-            success: false,
-            message: 'File does not exists'
-        });
-    }
-});
+// app.get('/status/:csvJsonId', function(req, res) {
+//     let csvJsonId = req.params.csvJsonId;
+//     if (fs.existsSync(`${__dirname}/csv-jsons/${csvJsonId}.json`)) {
+//         let csvJson = jsonfile.readFileSync(`${__dirname}/csv-jsons/${csvJsonId}.json`);
+//         let csvJsonPairs = _.pairs(csvJson);
+//         let response = {};
+//         for (let csvJsonPair of csvJsonPairs) {
+//             response[csvJsonPair[1].name] = {
+//                 sentForUpload: csvJsonPair[1].sentForUpload ? true : false,
+//                 webhookCompleted: csvJsonPair[1].webhookCompleted ? true : false
+//             }
+//         }
+//         res.json(response);
+//     } else {
+//         res.json({
+//             success: false,
+//             message: 'File does not exists'
+//         });
+//     }
+// });
 
 app.use(function(req, res) {
     res.status(404);
