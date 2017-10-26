@@ -1,3 +1,4 @@
 csv-jsons/
 node_modules/
 .env
+launch.json

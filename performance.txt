@@ -1,0 +1,9 @@
+Test#1
+===================
+OLD WAY
+-------------------
+1. Name: road.jpg
+2. Size: 1101.kb
+3. No. of boxes: 13
+4. response time: 3s
+4. No. image(s) : 1
